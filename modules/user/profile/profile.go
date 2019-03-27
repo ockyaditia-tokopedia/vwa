@@ -138,7 +138,9 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 	if sess.IsLoggedIn(r) {
 		if r.Method == "POST" {
-			uid := r.FormValue("uid")
+			//uid := r.FormValue("uid")
+			// @TODO: Soal No.1
+			uid := sess.GetSession(r, "id")
 			password_lama := r.FormValue("password_lama")
 			ok := updatePassword(uid, password_lama)
 			if !ok {
