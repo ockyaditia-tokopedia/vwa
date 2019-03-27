@@ -1,9 +1,9 @@
 package profile
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"crypto/md5"
 	"encoding/hex"
@@ -60,22 +60,28 @@ func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 }
 
+// @TODO: Soal No.2
 func GetUserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	if r.Method == "POST" {
-		uid := r.FormValue("uid")
-		respdata, err := GetUserData(uid)
-		if err != nil {
-			resp := Jsonresp{}
-			resp.Success = "0"
-			resp.Data = respdata
-			resp.Message = err.Error()
-			render.JSONRender(w, resp)
-		} else {
-			resp := Jsonresp{}
-			resp.Success = "1"
-			resp.Data = respdata
-			resp.Message = ""
-			render.JSONRender(w, resp)
+	sess := session.New()
+
+	if sess.IsLoggedIn(r) {
+		if r.Method == "POST" {
+			//uid := r.FormValue("uid")
+			uid := sess.GetSession(r, "id")
+			respdata, err := GetUserData(uid)
+			if err != nil {
+				resp := Jsonresp{}
+				resp.Success = "0"
+				resp.Data = respdata
+				resp.Message = err.Error()
+				render.JSONRender(w, resp)
+			} else {
+				resp := Jsonresp{}
+				resp.Success = "1"
+				resp.Data = respdata
+				resp.Message = ""
+				render.JSONRender(w, resp)
+			}
 		}
 	}
 }
@@ -158,13 +164,25 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 	render.JSONRender(w, resp)
 }
 
+// @TODO: Soal No.2
 func GetUserData(uid string) (*UserData, error) {
-
-	query := fmt.Sprintf("SELECT username, email, phone_number FROM users where id=%s", uid)
+	const (
+		query = `SELECT username, email, phone_number FROM users where id=$1`
+	)
 	userdata := UserData{}
-	stmt := DB.QueryRow(query)
 
-	err := stmt.Scan(&userdata.UserName, &userdata.Email, &userdata.MSISDN)
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := DB.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(uidInt).Scan(&userdata.UserName, &userdata.Email, &userdata.MSISDN)
 	if err != nil {
 		return nil, err
 	}
