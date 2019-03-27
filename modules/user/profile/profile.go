@@ -13,6 +13,7 @@ import (
 	"vwa/util/session"
 
 	"github.com/julienschmidt/httprouter"
+	"regexp"
 )
 
 type Self struct{}
@@ -49,15 +50,35 @@ type Jsonresp struct {
 	Message string    `json:"message"`
 }
 
+// @TODO: Soal No.4
 func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	data := make(map[string]interface{})
+	idu := r.URL.Query()["idu"][0]
 	nama := r.URL.Query()["user"][0]
+
+	if _, err := strconv.Atoi(idu); err != nil {
+		resp := Jsonresp{}
+		resp.Success = "0"
+		resp.Message = "idu not qualify"
+		render.JSONRender(w, resp)
+		return
+	}
+
+	re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
+
+	if !re.MatchString(nama) {
+		resp := Jsonresp{}
+		resp.Success = "0"
+		resp.Message = "nama not qualify"
+		render.JSONRender(w, resp)
+		return
+	}
+
 	data["title"] = "User Profile"
 	data["nama_user"] = nama
 
 	render.HTMLRender(w, r, "template.user", data)
-
 }
 
 // @TODO: Soal No.2
