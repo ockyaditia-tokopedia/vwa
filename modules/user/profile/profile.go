@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -51,6 +52,7 @@ type Jsonresp struct {
 }
 
 // @TODO: Soal No.4
+// XSS
 func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	data := make(map[string]interface{})
@@ -77,6 +79,11 @@ func UserHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	data["title"] = "User Profile"
 	data["nama_user"] = nama
+	// data["nama_user"] = template.HTMLEscapeString(nama)
+
+	// Use bluemonday library
+	// xss := bluemonday.NewPolicy()
+	// xss.sanitize(nama)
 
 	render.HTMLRender(w, r, "template.user", data)
 }
@@ -186,6 +193,10 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request, _ httprouter.
 }
 
 // @TODO: Soal No.2
+// SQL Injection
+// Use Parameterized
+// Gak selalu harus pake DB.Prepare, DB.Prepare untuk data yg besar
+// Bisa juga pakai DB.QueryRow
 func GetUserData(uid string) (*UserData, error) {
 	const (
 		query = `SELECT username, email, phone_number FROM users where id=$1`
